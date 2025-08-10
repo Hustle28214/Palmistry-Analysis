@@ -30,9 +30,12 @@ const History: React.FC = () => {
 
   const filteredAnalyses = analyses.filter(analysis => {
     if (!searchTerm) return true;
+    const personality = Array.isArray(analysis.result.personality) 
+      ? analysis.result.personality 
+      : [];
     return (
       analysis.result.handType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.result.personality.some(trait => 
+      personality.some(trait => 
         trait.toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
@@ -59,7 +62,9 @@ const History: React.FC = () => {
     const exportData = analyses.map(analysis => ({
       分析时间: new Date(analysis.timestamp).toLocaleString(),
       手型: analysis.result.handType,
-      性格特点: analysis.result.personality.join(', '),
+      性格特点: Array.isArray(analysis.result.personality) 
+        ? analysis.result.personality.join(', ') 
+        : '未分析',
       生命线: analysis.result.lifeLine,
       感情线: analysis.result.heartLine,
       智慧线: analysis.result.headLine,
@@ -184,7 +189,10 @@ const History: React.FC = () => {
                                 {analysis.result.handType}
                               </h3>
                               <div className="flex flex-wrap gap-1 mb-2">
-                                {analysis.result.personality.slice(0, 2).map((trait, index) => (
+                                {(Array.isArray(analysis.result.personality) 
+                                  ? analysis.result.personality 
+                                  : []
+                                ).slice(0, 2).map((trait, index) => (
                                   <span
                                     key={index}
                                     className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
@@ -192,7 +200,7 @@ const History: React.FC = () => {
                                     {trait}
                                   </span>
                                 ))}
-                                {analysis.result.personality.length > 2 && (
+                                {Array.isArray(analysis.result.personality) && analysis.result.personality.length > 2 && (
                                   <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
                                     +{analysis.result.personality.length - 2}
                                   </span>

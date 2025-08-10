@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Share2, Download, Heart, Brain, Zap, TrendingUp, User, Eye, Lightbulb, Target, BookOpen, Users, Sparkles, Activity, Shield, Briefcase, MessageCircle, Clock, Star, Award, CheckCircle, Microscope, Hand, MapPin, Calendar, Compass } from 'lucide-react';
+import { ArrowLeft, Share2, Download, Heart, Brain, Zap, TrendingUp, User, Eye, Lightbulb, Target, BookOpen, Users, Sparkles, Activity, Shield, Briefcase, MessageCircle, Clock, Star, Award, CheckCircle, Microscope, Hand, MapPin, Calendar, Compass, Baby, GraduationCap, Briefcase as BriefcaseIcon, Home, Users as UsersIcon } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useTheme } from '../contexts/ThemeContext';
 import { toast } from 'sonner';
 
 const Result: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { analyses } = useStore();
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState('overview');
   
   const analysis = analyses.find(a => a.id === id);
 
   if (!analysis) {
     return (
-      <div className="pt-16 min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className={`pt-16 min-h-screen flex items-center justify-center ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+      }`}>
         <div className="text-center">
-          <p className="text-gray-600 mb-4">未找到分析结果</p>
+          <p className={`mb-4 ${
+            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+          }`}>未找到分析结果</p>
           <Link to="/" className="text-blue-600 hover:text-blue-700">
             返回首页
           </Link>
@@ -167,44 +173,68 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
   };
 
   return (
-    <div className="pt-16 min-h-screen bg-gray-50">
+    <div className={`pt-16 min-h-screen ${
+      theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+    }`}>
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="bg-white shadow-sm">
+        <div className={`shadow-sm ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}>
           <div className="flex items-center justify-between p-4">
             <button
               onClick={() => navigate('/history')}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className={`p-2 rounded-full transition-colors ${
+                theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+              }`}
             >
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className={`w-6 h-6 ${
+                theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+              }`} />
             </button>
-            <h1 className="text-lg font-semibold text-gray-800">分析结果</h1>
+            <h1 className={`text-lg font-semibold ${
+              theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+            }`}>分析结果</h1>
             <div className="flex space-x-2">
               <button
                 onClick={handleShare}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className={`p-2 rounded-full transition-colors ${
+                  theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                }`}
               >
-                <Share2 className="w-5 h-5 text-gray-600" />
+                <Share2 className={`w-5 h-5 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                }`} />
               </button>
               <button
                 onClick={handleDownload}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className={`p-2 rounded-full transition-colors ${
+                  theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                }`}
               >
-                <Download className="w-5 h-5 text-gray-600" />
+                <Download className={`w-5 h-5 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                }`} />
               </button>
             </div>
           </div>
         </div>
 
         {/* Analysis Date */}
-        <div className="p-4 bg-white border-b">
-          <p className="text-sm text-gray-500 text-center">
+        <div className={`p-4 border-b ${
+          theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
+          <p className={`text-sm text-center ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             分析时间：{formatDate(analysis.timestamp)}
           </p>
         </div>
 
         {/* Hand Image */}
-        <div className="p-4 bg-white border-b">
+        <div className={`p-4 border-b ${
+          theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
           <div className="relative aspect-square max-w-sm mx-auto rounded-2xl overflow-hidden shadow-lg">
             <img
               src={analysis.imageUrl}
@@ -216,7 +246,9 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
         </div>
 
         {/* MBTI & Hand Type */}
-        <div className="p-6 bg-white border-b">
+        <div className={`p-6 border-b ${
+          theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
           <div className="text-center">
             {/* MBTI Type */}
             {analysis.result.mbtiType && (
@@ -224,24 +256,40 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">{analysis.result.mbtiType}</h2>
-                <p className="text-gray-600 mb-4 max-w-md mx-auto leading-relaxed">
+                <h2 className={`text-3xl font-bold mb-2 ${
+                  theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                }`}>{analysis.result.mbtiType}</h2>
+                <p className={`mb-4 max-w-md mx-auto leading-relaxed ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
                   {analysis.result.mbtiDescription}
                 </p>
               </div>
             )}
             
             {/* Hand Type */}
-            <div className="border-t pt-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-8 h-8 text-blue-600" />
+            <div className={`pt-6 ${
+              theme === 'dark' ? 'border-t border-gray-700' : 'border-t border-gray-200'
+            }`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                theme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'
+              }`}>
+                <Zap className={`w-8 h-8 ${
+                  theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                }`} />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">手型：{analysis.result.handType}</h3>
+              <h3 className={`text-xl font-bold mb-2 ${
+                theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+              }`}>手型：{analysis.result.handType}</h3>
               <div className="flex flex-wrap justify-center gap-2 mb-4">
                 {analysis.result.personality.map((trait, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      theme === 'dark' 
+                        ? 'bg-blue-900 text-blue-300' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}
                   >
                     {trait}
                   </span>
@@ -252,7 +300,9 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white border-b">
+        <div className={`border-b ${
+          theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex overflow-x-auto">
             {[
               { id: 'overview', label: '概览', icon: Eye },
@@ -268,8 +318,14 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 px-6 py-4 font-medium whitespace-nowrap transition-colors ${
                     activeTab === tab.id
-                      ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                      ? `text-blue-600 border-b-2 border-blue-600 ${
+                          theme === 'dark' ? 'bg-blue-900/20' : 'bg-blue-50'
+                        }`
+                      : `${
+                          theme === 'dark' 
+                            ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-700' 
+                            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                        }`
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -281,11 +337,15 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white">
+        <div className={`${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}>
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">手相线条分析</h3>
+              <h3 className={`text-xl font-bold mb-6 text-center ${
+                theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+              }`}>手相线条分析</h3>
               
               <div className="space-y-6">
                 {/* Life Line */}
@@ -294,8 +354,12 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
                     <Heart className="w-6 h-6 text-green-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 mb-2">生命线</h4>
-                    <p className="text-gray-600 leading-relaxed">{analysis.result.lifeLine}</p>
+                    <h4 className={`font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                    }`}>生命线</h4>
+                    <p className={`leading-relaxed ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>{analysis.result.lifeLine}</p>
                   </div>
                 </div>
 
@@ -305,8 +369,12 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
                     <Heart className="w-6 h-6 text-red-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 mb-2">感情线</h4>
-                    <p className="text-gray-600 leading-relaxed">{analysis.result.heartLine}</p>
+                    <h4 className={`font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                    }`}>感情线</h4>
+                    <p className={`leading-relaxed ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>{analysis.result.heartLine}</p>
                   </div>
                 </div>
 
@@ -316,15 +384,21 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
                     <Brain className="w-6 h-6 text-purple-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800 mb-2">智慧线</h4>
-                    <p className="text-gray-600 leading-relaxed">{analysis.result.headLine}</p>
+                    <h4 className={`font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                    }`}>智慧线</h4>
+                    <p className={`leading-relaxed ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>{analysis.result.headLine}</p>
                   </div>
                 </div>
               </div>
 
               {/* Basic Fortune Analysis */}
               <div className="mt-8">
-                <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">运势概览</h3>
+                <h3 className={`text-xl font-bold mb-6 text-center ${
+                  theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                }`}>运势概览</h3>
                 <div className="grid gap-4">
                   <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl">
                     <div className="flex items-center mb-3">
@@ -465,7 +539,7 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
                     <TrendingUp className="w-5 h-5 text-emerald-600 mr-2" />
                     <h4 className="font-semibold text-emerald-800">血管分布</h4>
                   </div>
-                  <p className="text-emerald-700 leading-relaxed">{analysis.result.detailedAnalysis.bloodVessels || '分析中...'}</p>
+                  <p className="text-emerald-700 leading-relaxed">{analysis.result.detailedAnalysis?.bloodVessels || '分析中...'}</p>
                 </div>
 
                 <div className="p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl">
@@ -739,10 +813,231 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
           {/* Life Experiences Tab */}
           {activeTab === 'experiences' && analysis.result.lifeExperiences && (
             <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">人生经历推测</h3>
-              <p className="text-sm text-gray-600 text-center mb-6">基于手相特征推测您可能的人生经历和背景</p>
+              <h3 className={`text-xl font-bold mb-6 text-center ${
+                theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+              }`}>人生经历推测</h3>
+              <p className={`text-sm text-center mb-6 ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`}>基于手相特征推测您可能的人生经历和背景</p>
               
+              {/* Life Stages Timeline */}
+              {analysis.result.lifeStages && (
+                <div className="mb-8">
+                  <div className="text-center mb-6">
+                    <h4 className={`text-lg font-semibold mb-2 ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                    }`}>人生阶段时间轴</h4>
+                    <div className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium mb-2">
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      <span>Beta 版本</span>
+                    </div>
+                    <p className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>基于手掌纹路特征推测各人生阶段可能发生的重要事件</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {/* Childhood (0-12) */}
+                    <div className={`p-4 rounded-xl border ${
+                      theme === 'dark' 
+                        ? 'bg-gradient-to-r from-pink-900/20 to-pink-800/20 border-pink-700/30' 
+                        : 'bg-gradient-to-r from-pink-50 to-pink-100 border-pink-200'
+                    }`}>
+                      <div className="flex items-center mb-3">
+                        <Baby className={`w-5 h-5 mr-2 ${
+                          theme === 'dark' ? 'text-pink-400' : 'text-pink-600'
+                        }`} />
+                        <h5 className={`font-semibold ${
+                          theme === 'dark' ? 'text-pink-300' : 'text-pink-800'
+                        }`}>童年期 (0-12岁)</h5>
+                      </div>
+                      <div className={`leading-relaxed ${
+                        theme === 'dark' ? 'text-pink-200' : 'text-pink-700'
+                      }`}>
+                        <p className="mb-2 text-sm">
+                          {analysis.result.lifeStages?.childhood?.personalityDevelopment || 
+                          '根据生命线起点的清晰度和深度，推测您的童年时期身体健康状况良好，家庭环境相对稳定。'}
+                        </p>
+                        {analysis.result.lifeStages?.childhood?.keyEvents && analysis.result.lifeStages.childhood.keyEvents.length > 0 && (
+                          <div className="mt-2">
+                            <p className="font-medium mb-1 text-xs">关键事件：</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                              {analysis.result.lifeStages.childhood.keyEvents.slice(0, 2).map((event, index) => (
+                                <li key={index}>{event}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Adolescence (13-18) */}
+                    <div className={`p-4 rounded-xl border ${
+                      theme === 'dark' 
+                        ? 'bg-gradient-to-r from-blue-900/20 to-blue-800/20 border-blue-700/30' 
+                        : 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200'
+                    }`}>
+                      <div className="flex items-center mb-3">
+                        <GraduationCap className={`w-5 h-5 mr-2 ${
+                          theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                        }`} />
+                        <h5 className={`font-semibold ${
+                          theme === 'dark' ? 'text-blue-300' : 'text-blue-800'
+                        }`}>青少年期 (13-18岁)</h5>
+                      </div>
+                      <div className={`leading-relaxed ${
+                        theme === 'dark' ? 'text-blue-200' : 'text-blue-700'
+                      }`}>
+                        <p className="mb-2 text-sm">
+                          {analysis.result.lifeStages?.adolescence?.personalityDevelopment || 
+                          '智慧线的走向和深度反映出您在青少年时期学习能力较强，思维活跃。'}
+                        </p>
+                        {analysis.result.lifeStages?.adolescence?.keyEvents && analysis.result.lifeStages.adolescence.keyEvents.length > 0 && (
+                          <div className="mt-2">
+                            <p className="font-medium mb-1 text-xs">关键事件：</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                              {analysis.result.lifeStages.adolescence.keyEvents.slice(0, 2).map((event, index) => (
+                                <li key={index}>{event}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Young Adult (19-30) */}
+                    <div className={`p-4 rounded-xl border ${
+                      theme === 'dark' 
+                        ? 'bg-gradient-to-r from-green-900/20 to-green-800/20 border-green-700/30' 
+                        : 'bg-gradient-to-r from-green-50 to-green-100 border-green-200'
+                    }`}>
+                      <div className="flex items-center mb-3">
+                        <BriefcaseIcon className={`w-5 h-5 mr-2 ${
+                          theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                        }`} />
+                        <h5 className={`font-semibold ${
+                          theme === 'dark' ? 'text-green-300' : 'text-green-800'
+                        }`}>青年期 (19-30岁)</h5>
+                      </div>
+                      <div className={`leading-relaxed ${
+                        theme === 'dark' ? 'text-green-200' : 'text-green-700'
+                      }`}>
+                        <p className="mb-2 text-sm">
+                          {analysis.result.lifeStages?.youngAdult?.personalityDevelopment || 
+                          '事业线的起始位置和走向显示您在青年时期开始建立自己的职业道路。'}
+                        </p>
+                        {analysis.result.lifeStages?.youngAdult?.keyEvents && analysis.result.lifeStages.youngAdult.keyEvents.length > 0 && (
+                          <div className="mt-2">
+                            <p className="font-medium mb-1 text-xs">关键事件：</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                              {analysis.result.lifeStages.youngAdult.keyEvents.slice(0, 2).map((event, index) => (
+                                <li key={index}>{event}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Middle Age (31-50) */}
+                    <div className={`p-4 rounded-xl border ${
+                      theme === 'dark' 
+                        ? 'bg-gradient-to-r from-purple-900/20 to-purple-800/20 border-purple-700/30' 
+                        : 'bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200'
+                    }`}>
+                      <div className="flex items-center mb-3">
+                        <Users className={`w-5 h-5 mr-2 ${
+                          theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
+                        }`} />
+                        <h5 className={`font-semibold ${
+                          theme === 'dark' ? 'text-purple-300' : 'text-purple-800'
+                        }`}>中年期 (31-50岁)</h5>
+                      </div>
+                      <div className={`leading-relaxed ${
+                        theme === 'dark' ? 'text-purple-200' : 'text-purple-700'
+                      }`}>
+                        <p className="mb-2 text-sm">
+                          {analysis.result.lifeStages?.middleAge?.personalityDevelopment || 
+                          '生命线中段的特征显示您在中年时期生活相对稳定，可能在事业上达到了一定高度。'}
+                        </p>
+                        {analysis.result.lifeStages?.middleAge?.keyEvents && analysis.result.lifeStages.middleAge.keyEvents.length > 0 && (
+                          <div className="mt-2">
+                            <p className="font-medium mb-1 text-xs">关键事件：</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                              {analysis.result.lifeStages.middleAge.keyEvents.slice(0, 2).map((event, index) => (
+                                <li key={index}>{event}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Mature Age (51+) */}
+                    <div className={`p-4 rounded-xl border ${
+                      theme === 'dark' 
+                        ? 'bg-gradient-to-r from-amber-900/20 to-amber-800/20 border-amber-700/30' 
+                        : 'bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200'
+                    }`}>
+                      <div className="flex items-center mb-3">
+                        <Home className={`w-5 h-5 mr-2 ${
+                          theme === 'dark' ? 'text-amber-400' : 'text-amber-600'
+                        }`} />
+                        <h5 className={`font-semibold ${
+                          theme === 'dark' ? 'text-amber-300' : 'text-amber-800'
+                        }`}>成熟期 (51岁以后)</h5>
+                      </div>
+                      <div className={`leading-relaxed ${
+                        theme === 'dark' ? 'text-amber-200' : 'text-amber-700'
+                      }`}>
+                        <p className="mb-2 text-sm">
+                          {analysis.result.lifeStages?.matureAge?.personalityDevelopment || 
+                          '生命线末端的走向预示着您在成熟期将享受相对平静的生活。'}
+                        </p>
+                        {analysis.result.lifeStages?.matureAge?.keyEvents && analysis.result.lifeStages.matureAge.keyEvents.length > 0 && (
+                          <div className="mt-2">
+                            <p className="font-medium mb-1 text-xs">关键事件：</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                              {analysis.result.lifeStages.matureAge.keyEvents.slice(0, 2).map((event, index) => (
+                                <li key={index}>{event}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`mt-6 p-4 rounded-xl border ${
+                    theme === 'dark' 
+                      ? 'bg-gradient-to-r from-yellow-900/20 to-yellow-800/20 border-yellow-700/30' 
+                      : 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200'
+                  }`}>
+                    <div className="flex items-center mb-2">
+                      <Shield className={`w-4 h-4 mr-2 ${
+                        theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'
+                      }`} />
+                      <h5 className={`font-medium text-sm ${
+                        theme === 'dark' ? 'text-yellow-300' : 'text-yellow-800'
+                      }`}>人生阶段推测说明</h5>
+                    </div>
+                    <p className={`text-xs leading-relaxed ${
+                      theme === 'dark' ? 'text-yellow-200' : 'text-yellow-700'
+                    }`}>
+                      此功能为Beta测试版本，人生阶段事件推测基于传统手相学理论和统计学分析，结合手掌纹路、线条深浅、手型特征等多维度信息进行推测。
+                      请注意这些推测具有很强的主观性和不确定性，仅供娱乐和自我反思参考。
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Life Experiences Cards */}
               <div className="space-y-6">
+                <div className="text-center mb-4">
+                  <h4 className={`text-lg font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>人生经历详情</h4>
+                </div>
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
                   <div className="flex items-center mb-3">
                     <Briefcase className="w-5 h-5 text-blue-600 mr-2" />
@@ -820,10 +1115,14 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
               </div>
             </div>
           )}
+
+
         </div>
 
         {/* Actions */}
-        <div className="p-6 bg-white border-t">
+        <div className={`p-6 border-t ${
+          theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex space-x-4">
             <Link
               to="/camera"
@@ -834,7 +1133,11 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
             </Link>
             <Link
               to="/history"
-              className="flex-1 flex items-center justify-center space-x-2 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-all"
+              className={`flex-1 flex items-center justify-center space-x-2 py-3 px-6 rounded-xl font-semibold transition-all ${
+                theme === 'dark' 
+                  ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
               <span>查看历史</span>
             </Link>
@@ -842,8 +1145,14 @@ MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
         </div>
 
         {/* Disclaimer */}
-        <div className="p-6 bg-yellow-50 border-t border-yellow-200">
-          <p className="text-sm text-yellow-800 text-center leading-relaxed">
+        <div className={`p-6 border-t ${
+          theme === 'dark' 
+            ? 'bg-yellow-900/20 border-yellow-700/30' 
+            : 'bg-yellow-50 border-yellow-200'
+        }`}>
+          <p className={`text-sm text-center leading-relaxed ${
+            theme === 'dark' ? 'text-yellow-200' : 'text-yellow-800'
+          }`}>
             <strong>免责声明：</strong>本分析结果基于传统手相学理论，仅供娱乐参考。
             每个人的命运掌握在自己手中，请理性对待分析结果。
           </p>

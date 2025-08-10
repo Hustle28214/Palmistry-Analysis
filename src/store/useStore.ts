@@ -149,6 +149,44 @@ export interface PalmAnalysis {
       healthChallenges: string;
       personalGrowth: string;
     };
+    
+    lifeStages?: {
+      childhood: {
+        period: string;
+        keyEvents: string[];
+        personalityDevelopment: string;
+        challenges: string[];
+        achievements: string[];
+      };
+      adolescence: {
+        period: string;
+        keyEvents: string[];
+        personalityDevelopment: string;
+        challenges: string[];
+        achievements: string[];
+      };
+      youngAdult: {
+        period: string;
+        keyEvents: string[];
+        personalityDevelopment: string;
+        challenges: string[];
+        achievements: string[];
+      };
+      middleAge: {
+        period: string;
+        keyEvents: string[];
+        personalityDevelopment: string;
+        challenges: string[];
+        achievements: string[];
+      };
+      matureAge: {
+        period: string;
+        keyEvents: string[];
+        personalityDevelopment: string;
+        challenges: string[];
+        achievements: string[];
+      };
+    };
   };
 }
 

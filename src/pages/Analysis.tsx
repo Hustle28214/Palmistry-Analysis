@@ -49,23 +49,82 @@ const Analysis: React.FC = () => {
 
   // 备选方案：生成模拟分析结果
   const generateFallbackAnalysis = (imageUrl: string): PalmAnalysis => {
-    const handTypes = ['方形手', '长方形手', '圆锥形手', '尖形手'];
-    const personalities = ['理性思维', '创造力强', '情感丰富', '直觉敏锐', '领导能力'];
+    // 动态生成更多样化的手型和特征
+    const handTypeVariations = [
+      { type: '方形手', traits: ['理性务实', '逻辑思维强', '组织能力出色', '责任心重', '执行力强'] },
+      { type: '长方形手', traits: ['感性细腻', '艺术天赋', '直觉敏锐', '创造力丰富', '情感深度'] },
+      { type: '圆锥形手', traits: ['灵活变通', '适应性强', '沟通技巧好', '社交活跃', '思维敏捷'] },
+      { type: '尖形手', traits: ['敏感细致', '洞察力强', '想象力丰富', '精神追求高', '审美能力强'] },
+      { type: '混合型手', traits: ['平衡发展', '多元能力', '适应性广', '综合素质高', '潜力巨大'] }
+    ];
+    
+    const lifeLineVariations = [
+      '生命线深长清晰，弧度优美，表示体质强健，生命力旺盛，人生轨迹稳定向上。',
+      '生命线起点饱满，延伸流畅，显示精力充沛，抗压能力强，健康状况良好。',
+      '生命线纹路清晰，走向稳定，预示身心健康，生活规律，长寿的征象明显。',
+      '生命线形态良好，深度适中，表明生命活力充足，免疫力强，很少生病。'
+    ];
+    
+    const heartLineVariations = [
+      '感情线弯曲向上，线条流畅，表示情感丰富，表达能力强，在感情中比较主动积极。',
+      '感情线深而清晰，走向稳定，显示感情专一，对爱情忠诚，重视精神层面的交流。',
+      '感情线起点清晰，终点明确，预示感情生活和谐，善于处理人际关系，共情能力强。',
+      '感情线纹理细腻，分支适度，表明情感细腻，善解人意，是理想的人生伴侣。'
+    ];
+    
+    const headLineVariations = [
+      '智慧线笔直清晰，长度适中，显示逻辑思维能力强，分析判断准确，决策果断。',
+      '智慧线深而稳定，走向良好，表明学习能力出色，知识面广，善于创新思考。',
+      '智慧线形态优美，纹路清晰，预示思维敏捷，理解力强，具有很好的洞察力。',
+      '智慧线起点饱满，延伸自然，显示智力水平高，创造力强，善于解决复杂问题。'
+    ];
+    
+    const fortuneVariations = [
+      '整体运势呈稳步上升趋势，近期财运亨通，事业发展顺利，建议积极把握机遇。',
+      '综合运势良好，各方面发展均衡，中年后运势特别旺盛，是大器晚成的类型。',
+      '运势波动中有上升，贵人运强，容易得到他人帮助，适合团队合作发展。',
+      '整体运势稳中有进，虽然发展较为平稳，但持续性强，是细水长流的好运势。'
+    ];
+    
+    const healthVariations = [
+      '身体状况整体良好，体质较强，但需注意工作与休息的平衡，避免过度疲劳。',
+      '健康运势不错，免疫力强，很少生病，建议保持规律作息，适度运动。',
+      '体质偏向健康，精力充沛，但要注意情绪管理，避免压力过大影响身心健康。',
+      '身体机能良好，恢复能力强，建议注重预防保健，保持良好的生活习惯。'
+    ];
+    
+    const careerVariations = [
+      '事业发展前景广阔，适合从事管理、咨询、教育等需要综合能力的工作。',
+      '职业运势稳定上升，有领导潜质，适合在团队中发挥组织协调作用。',
+      '事业线清晰，发展路径明确，适合从事创意、技术、服务等专业性工作。',
+      '工作能力强，适应性好，适合在变化较大的环境中发展，有创业潜质。'
+    ];
+    
+    const loveVariations = [
+      '感情运势温和上升，单身者有望遇到合适对象，已有伴侣的关系将更加稳固。',
+      '爱情运势良好，感情生活和谐，善于经营关系，是值得信赖的人生伴侣。',
+      '感情发展顺利，桃花运不错，但要注意选择合适的对象，重视精神契合。',
+      '情感运势稳定，对感情认真负责，一旦确定关系会全心投入，婚姻生活幸福。'
+    ];
+    
+    // 随机选择各种变化
+    const selectedHandType = handTypeVariations[Math.floor(Math.random() * handTypeVariations.length)];
+    const selectedPersonalities = selectedHandType.traits.slice(0, 3 + Math.floor(Math.random() * 3));
     
     return {
       id: Date.now().toString(),
       imageUrl: imageUrl,
       timestamp: Date.now(),
       result: {
-        handType: handTypes[Math.floor(Math.random() * handTypes.length)],
-        lifeLine: '您的生命线清晰深长，表示身体健康，生命力旺盛。线条稳定，预示着稳定的生活状态。',
-        heartLine: '感情线弯曲向上，表示您是一个感情丰富、善于表达的人，在感情方面比较主动。',
-        headLine: '智慧线长度适中且清晰，显示您思维敏捷，分析能力强，善于解决问题。',
-        personality: personalities.slice(0, 3),
-        fortune: '整体运势呈上升趋势，近期会有不错的机遇出现，建议把握时机。',
-        health: '身体状况良好，但需要注意休息，避免过度劳累。建议保持规律的作息时间。',
-        career: '事业发展稳定，有贵人相助。适合从事需要创造力和沟通能力的工作。',
-        love: '感情运势不错，单身者有机会遇到心仪对象，已有伴侣的关系会更加稳定。'
+        handType: selectedHandType.type,
+        lifeLine: lifeLineVariations[Math.floor(Math.random() * lifeLineVariations.length)],
+        heartLine: heartLineVariations[Math.floor(Math.random() * heartLineVariations.length)],
+        headLine: headLineVariations[Math.floor(Math.random() * headLineVariations.length)],
+        personality: selectedPersonalities,
+        fortune: fortuneVariations[Math.floor(Math.random() * fortuneVariations.length)],
+        health: healthVariations[Math.floor(Math.random() * healthVariations.length)],
+        career: careerVariations[Math.floor(Math.random() * careerVariations.length)],
+        love: loveVariations[Math.floor(Math.random() * loveVariations.length)]
       }
     };
   };
