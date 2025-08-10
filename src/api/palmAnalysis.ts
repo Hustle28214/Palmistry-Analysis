@@ -163,15 +163,15 @@ export interface PalmAnalysisResponse {
   };
  }
 
-// 配置信息 - 在实际部署时应该使用环境变量
+// 配置信息 - 使用Vercel serverless functions作为API代理
 const API_CONFIG = {
-  // OpenAI GPT-4 Vision API
+  // OpenAI GPT-4 Vision API - 通过代理调用
   OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY || '',
-  OPENAI_API_URL: 'https://api.openai.com/v1',
+  OPENAI_API_URL: '/api/openai', // 使用Vercel serverless function代理
   
-  // Groq API配置
+  // Groq API配置 - 通过代理调用
   GROQ_API_KEY: import.meta.env.VITE_GROQ_API_KEY || '',
-  GROQ_API_URL: 'https://api.groq.com/openai/v1/chat/completions',
+  GROQ_API_URL: '/api/groq', // 使用Vercel serverless function代理
   
   // 免费LLM API配置（备用）
   HUGGINGFACE_API_KEY: import.meta.env.VITE_HUGGINGFACE_API_KEY || '',
@@ -258,21 +258,8 @@ function updateAPIStatus(apiName: string, success: boolean, error?: string, resp
  * 强制优先选择OpenAI API
  */
 function getBestAvailableAPI(): string {
-  // 强制优先选择OpenAI（只要有API密钥就使用，忽略状态）
-  if (API_CONFIG.OPENAI_API_KEY && API_CONFIG.OPENAI_API_KEY.trim() !== '') {
-    console.log('优先选择OpenAI API（用户指定优先级）');
-    return 'openai';
-  }
-  
-  // 如果没有OpenAI密钥，才考虑Groq
-  const groqStatus = apiStatusMap.get('groq');
-  if (groqStatus?.available && API_CONFIG.GROQ_API_KEY && API_CONFIG.GROQ_API_KEY.trim() !== '') {
-    console.log('OpenAI不可用，使用Groq API作为备选');
-    return 'groq';
-  }
-  
-  // 如果都没有密钥，默认返回openai（会在后续调用中抛出错误）
-  console.log('没有可用的API密钥，默认尝试OpenAI');
+  // 强制优先选择OpenAI（通过代理调用，不需要检查密钥）
+  console.log('优先选择OpenAI API（通过代理调用）');
   return 'openai';
 }
 
@@ -336,21 +323,17 @@ async function callAPIWithRetry<T>(
 }
 
 /**
- * 调用OpenAI GPT-4 Vision API进行手相分析
+ * 调用OpenAI GPT-4 Vision API进行手相分析（通过代理）
  */
 export async function analyzeWithOpenAI(imageBase64: string): Promise<PalmAnalysisResponse> {
-  if (!API_CONFIG.OPENAI_API_KEY || API_CONFIG.OPENAI_API_KEY === '') {
-    throw new Error('OpenAI API密钥未配置。请在.env文件中设置VITE_OPENAI_API_KEY');
-  }
-
   return callAPIWithRetry('openai', async () => {
     const response = await fetchWithTimeout(API_CONFIG.OPENAI_API_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_CONFIG.OPENAI_API_KEY}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        apiKey: API_CONFIG.OPENAI_API_KEY,
         model: 'gpt-4o', // 使用最新的 GPT-4o 模型
       messages: [
         {
@@ -583,19 +566,14 @@ export async function analyzeWithOpenAI(imageBase64: string): Promise<PalmAnalys
 }
 
 /**
- * 调用Groq免费API进行手相分析
+ * 调用Groq免费API进行手相分析（通过代理）
  */
 export async function analyzeWithGroq(imageBase64: string): Promise<PalmAnalysisResponse> {
-  if (!API_CONFIG.GROQ_API_KEY || API_CONFIG.GROQ_API_KEY === '') {
-    throw new Error('Groq API密钥未配置。请在.env文件中设置VITE_GROQ_API_KEY');
-  }
-
   return callAPIWithRetry('groq', async () => {
     const response = await fetchWithTimeout(API_CONFIG.GROQ_API_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_CONFIG.GROQ_API_KEY}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile', // 使用最新的Llama 3.3 70B模型
