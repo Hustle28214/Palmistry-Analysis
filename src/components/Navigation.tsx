@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Camera, History, Hand, Sun, Moon, BookOpen } from 'lucide-react';
+import { Home, Camera, History, Hand, Sun, Moon, BookOpen, Settings } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Navigation: React.FC = () => {
@@ -12,6 +12,7 @@ const Navigation: React.FC = () => {
     { path: '/camera', icon: Camera, label: '拍摄' },
     { path: '/hand-types', icon: BookOpen, label: '手型' },
     { path: '/history', icon: History, label: '历史' },
+    { path: '/api-test', icon: Settings, label: 'API测试' },
   ];
 
   return (

@@ -7,6 +7,7 @@ import Analysis from './pages/Analysis';
 import Result from './pages/Result';
 import History from './pages/History';
 import HandTypes from './pages/HandTypes';
+import ApiTest from './pages/ApiTest';
 import Navigation from './components/Navigation';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/result/:id" element={<Result />} />
               <Route path="/history" element={<History />} />
               <Route path="/hand-types" element={<HandTypes />} />
+              <Route path="/api-test" element={<ApiTest />} />
             </Routes>
           </main>
           <Toaster position="top-center" richColors />

@@ -165,20 +165,175 @@ export interface PalmAnalysisResponse {
 
 // 配置信息 - 在实际部署时应该使用环境变量
 const API_CONFIG = {
-  // 示例：OpenAI GPT-4 Vision API
+  // OpenAI GPT-4 Vision API
   OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY || '',
-  OPENAI_API_URL: 'https://api.openai.com/v1/chat/completions',
+  OPENAI_API_URL: 'https://api.openai.com/v1',
   
-  // 免费LLM API配置
+  // Groq API配置
+  GROQ_API_KEY: import.meta.env.VITE_GROQ_API_KEY || '',
+  GROQ_API_URL: 'https://api.groq.com/openai/v1/chat/completions',
+  
+  // 免费LLM API配置（备用）
   HUGGINGFACE_API_KEY: import.meta.env.VITE_HUGGINGFACE_API_KEY || '',
   HUGGINGFACE_API_URL: 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-large',
-  
-  // 已移除Ollama配置
-  
-  // 其他免费API配置
-  GROQ_API_KEY: import.meta.env.VITE_GROQ_API_KEY || 'gsk_demo_key_for_testing',
-  GROQ_API_URL: 'https://api.groq.com/openai/v1/chat/completions',
 };
+
+// API调用状态监控
+interface APIStatus {
+  name: string;
+  available: boolean;
+  lastError?: string;
+  lastSuccessTime?: number;
+  failureCount: number;
+  responseTime?: number;
+}
+
+// API优先级设置：OpenAI > Groq > 离线模式
+// 用户明确要求优先使用OpenAI API
+const apiStatusMap = new Map<string, APIStatus>([
+  ['openai', { name: 'OpenAI GPT-4o', available: true, failureCount: 0 }], // 第一优先级
+  ['groq', { name: 'Groq Llama3', available: true, failureCount: 0 }]     // 第二优先级（备用）
+]);
+
+// 重试配置
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 1000, // 1秒
+  maxDelay: 10000, // 10秒
+  backoffMultiplier: 2
+};
+
+// 超时配置
+const TIMEOUT_CONFIG = {
+  openai: 30000, // 30秒
+  groq: 25000,   // 25秒
+  default: 20000 // 20秒
+};
+
+/**
+ * 延迟函数
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * 计算重试延迟时间
+ */
+function calculateRetryDelay(attempt: number): number {
+  const delay = Math.min(
+    RETRY_CONFIG.baseDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attempt),
+    RETRY_CONFIG.maxDelay
+  );
+  // 添加随机抖动，避免雷群效应
+  return delay + Math.random() * 1000;
+}
+
+/**
+ * 更新API状态
+ */
+function updateAPIStatus(apiName: string, success: boolean, error?: string, responseTime?: number): void {
+  const status = apiStatusMap.get(apiName);
+  if (status) {
+    if (success) {
+      status.available = true;
+      status.failureCount = 0;
+      status.lastSuccessTime = Date.now();
+      status.responseTime = responseTime;
+      status.lastError = undefined;
+    } else {
+      status.failureCount += 1;
+      status.lastError = error;
+      // 连续失败3次后标记为不可用
+      if (status.failureCount >= 3) {
+        status.available = false;
+      }
+    }
+    console.log(`API状态更新 [${apiName}]:`, status);
+  }
+}
+
+/**
+ * 获取最佳可用API
+ * 强制优先选择OpenAI API
+ */
+function getBestAvailableAPI(): string {
+  // 强制优先选择OpenAI（只要有API密钥就使用，忽略状态）
+  if (API_CONFIG.OPENAI_API_KEY && API_CONFIG.OPENAI_API_KEY.trim() !== '') {
+    console.log('优先选择OpenAI API（用户指定优先级）');
+    return 'openai';
+  }
+  
+  // 如果没有OpenAI密钥，才考虑Groq
+  const groqStatus = apiStatusMap.get('groq');
+  if (groqStatus?.available && API_CONFIG.GROQ_API_KEY && API_CONFIG.GROQ_API_KEY.trim() !== '') {
+    console.log('OpenAI不可用，使用Groq API作为备选');
+    return 'groq';
+  }
+  
+  // 如果都没有密钥，默认返回openai（会在后续调用中抛出错误）
+  console.log('没有可用的API密钥，默认尝试OpenAI');
+  return 'openai';
+}
+
+/**
+ * 带超时的fetch请求
+ */
+async function fetchWithTimeout(url: string, options: RequestInit, timeout: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`请求超时 (${timeout}ms)`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * 带重试机制的API调用
+ */
+async function callAPIWithRetry<T>(
+  apiName: string,
+  apiCall: () => Promise<T>,
+  maxRetries: number = RETRY_CONFIG.maxRetries
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const startTime = Date.now();
+      const result = await apiCall();
+      const responseTime = Date.now() - startTime;
+      
+      updateAPIStatus(apiName, true, undefined, responseTime);
+      return result;
+    } catch (error) {
+      lastError = error as Error;
+      console.warn(`API调用失败 [${apiName}] 尝试 ${attempt + 1}/${maxRetries + 1}:`, error);
+      
+      updateAPIStatus(apiName, false, lastError.message);
+      
+      // 如果不是最后一次尝试，等待后重试
+      if (attempt < maxRetries) {
+        const retryDelay = calculateRetryDelay(attempt);
+        console.log(`等待 ${retryDelay}ms 后重试...`);
+        await delay(retryDelay);
+      }
+    }
+  }
+  
+  throw lastError;
+}
 
 /**
  * 调用OpenAI GPT-4 Vision API进行手相分析
@@ -188,14 +343,15 @@ export async function analyzeWithOpenAI(imageBase64: string): Promise<PalmAnalys
     throw new Error('OpenAI API密钥未配置。请在.env文件中设置VITE_OPENAI_API_KEY');
   }
 
-  const response = await fetch(API_CONFIG.OPENAI_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_CONFIG.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'gpt-4-vision-preview',
+  return callAPIWithRetry('openai', async () => {
+    const response = await fetchWithTimeout(API_CONFIG.OPENAI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_CONFIG.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o', // 使用最新的 GPT-4o 模型
       messages: [
         {
           role: 'user',
@@ -394,23 +550,23 @@ export async function analyzeWithOpenAI(imageBase64: string): Promise<PalmAnalys
           ]
         }
       ],
-      max_tokens: 4000,
-      temperature: 0.7
-    })
-  });
+        max_tokens: 4000,
+        temperature: 0.7
+      })
+    }, TIMEOUT_CONFIG.openai);
 
-  if (!response.ok) {
-    throw new Error(`OpenAI API调用失败: ${response.status} ${response.statusText}`);
-  }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenAI API调用失败: ${response.status} ${response.statusText} - ${errorText}`);
+    }
 
-  const result = await response.json();
-  const content = result.choices[0]?.message?.content;
-  
-  if (!content) {
-    throw new Error('API返回内容为空');
-  }
+    const result = await response.json();
+    const content = result.choices[0]?.message?.content;
+    
+    if (!content) {
+      throw new Error('OpenAI API返回内容为空');
+    }
 
-  try {
     // 尝试解析JSON响应
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -419,32 +575,30 @@ export async function analyzeWithOpenAI(imageBase64: string): Promise<PalmAnalys
       if (parsedResult.personality && typeof parsedResult.personality === 'string') {
         parsedResult.personality = [parsedResult.personality];
       }
-      return parsedResult;
+      return validateAnalysisResult(parsedResult);
     } else {
-      throw new Error('无法从响应中提取JSON');
+      throw new Error('无法从OpenAI响应中提取JSON格式数据');
     }
-  } catch (parseError) {
-    console.error('解析API响应失败:', parseError);
-    throw new Error('API响应格式错误');
-  }
+  });
 }
 
 /**
  * 调用Groq免费API进行手相分析
  */
 export async function analyzeWithGroq(imageBase64: string): Promise<PalmAnalysisResponse> {
-  if (!API_CONFIG.GROQ_API_KEY || API_CONFIG.GROQ_API_KEY === '' || API_CONFIG.GROQ_API_KEY === 'gsk_demo_key_for_testing') {
+  if (!API_CONFIG.GROQ_API_KEY || API_CONFIG.GROQ_API_KEY === '') {
     throw new Error('Groq API密钥未配置。请在.env文件中设置VITE_GROQ_API_KEY');
   }
 
-  const response = await fetch(API_CONFIG.GROQ_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_CONFIG.GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'llama3-8b-8192',
+  return callAPIWithRetry('groq', async () => {
+    const response = await fetchWithTimeout(API_CONFIG.GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_CONFIG.GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile', // 使用最新的Llama 3.3 70B模型
       messages: [
         {
           role: 'user',
@@ -618,23 +772,23 @@ export async function analyzeWithGroq(imageBase64: string): Promise<PalmAnalysis
 请确保返回完整的JSON格式，所有字段都必须填写详细内容，不得遗漏或简化。`
         }
       ],
-      max_tokens: 4000,
-      temperature: 0.7
-    })
-  });
+        max_tokens: 4000,
+        temperature: 0.7
+      })
+    }, TIMEOUT_CONFIG.groq);
 
-  if (!response.ok) {
-    throw new Error(`Groq API调用失败: ${response.status} ${response.statusText}`);
-  }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Groq API调用失败: ${response.status} ${response.statusText} - ${errorText}`);
+    }
 
-  const result = await response.json();
-  const content = result.choices[0]?.message?.content;
-  
-  if (!content) {
-    throw new Error('API返回内容为空');
-  }
+    const result = await response.json();
+    const content = result.choices[0]?.message?.content;
+    
+    if (!content) {
+      throw new Error('Groq API返回内容为空');
+    }
 
-  try {
     // 尝试解析JSON响应
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -643,14 +797,11 @@ export async function analyzeWithGroq(imageBase64: string): Promise<PalmAnalysis
       if (parsedResult.personality && typeof parsedResult.personality === 'string') {
         parsedResult.personality = [parsedResult.personality];
       }
-      return parsedResult;
+      return validateAnalysisResult(parsedResult);
     } else {
-      throw new Error('无法从响应中提取JSON');
+      throw new Error('无法从Groq响应中提取JSON格式数据');
     }
-  } catch (parseError) {
-    console.error('解析API响应失败:', parseError);
-    throw new Error('API响应格式错误');
-  }
+  });
 }
 
 // Ollama API 已移除，现在只使用 OpenAI GPT API
@@ -1611,45 +1762,78 @@ function generateCompleteAnalysis(baseResult: any): PalmAnalysisResponse {
 }
 
 /**
- * 调用自定义图像分析API（示例）
+ * 调用自定义图像分析API（智能选择最佳可用API）
  */
 export async function analyzeWithCustomAPI(imageBase64: string): Promise<PalmAnalysisResponse> {
-  // 首先尝试Groq API
+  const bestAPI = getBestAvailableAPI();
+  
   try {
-    return await analyzeWithGroq(imageBase64);
-  } catch (groqError) {
-    console.error('Groq API调用失败:', groqError);
-    
-    // 如果Groq失败，生成完整的模拟数据
+    if (bestAPI === 'openai') {
+      console.log('使用OpenAI API进行分析...');
+      return await analyzeWithOpenAI(imageBase64);
+    } else if (bestAPI === 'groq') {
+      console.log('使用Groq API进行分析...');
+      return await analyzeWithGroq(imageBase64);
+    } else {
+      // 如果没有可用的API，直接生成模拟数据
+      console.warn('没有可用的API，使用模拟数据生成分析结果');
+      return generateCompleteAnalysis({});
+    }
+  } catch (error) {
+    console.warn(`${bestAPI} API调用失败，使用模拟数据:`, error);
+    // 如果API调用失败，生成完整的模拟数据
     return generateCompleteAnalysis({});
   }
 }
 
 /**
  * 主要的手相分析函数
- * 优先使用OpenAI GPT API，如果失败则使用备选方案
+ * 使用智能API选择策略，优先选择最佳可用API
  */
 export async function analyzePalmImage(imageBase64: string): Promise<PalmAnalysisResponse> {
   console.log('开始手相分析...');
   
+  // 预处理图像
+  const processedImage = preprocessImage(imageBase64);
+  
+  // 使用智能API选择策略
+  const bestAPI = getBestAvailableAPI();
+  console.log(`选择的最佳API: ${bestAPI}`);
+  
   try {
-    // 首先尝试OpenAI GPT API
-    console.log('尝试使用OpenAI GPT-4 Vision API...');
-    return await analyzeWithOpenAI(imageBase64);
-  } catch (openaiError) {
-    console.warn('OpenAI API不可用:', openaiError);
-    
-    try {
-      // 如果OpenAI失败，尝试免费的LLM API
-      console.log('尝试使用免费LLM API...');
-      return await analyzeWithCustomAPI(imageBase64);
-    } catch (freeApiError) {
-      console.warn('免费API不可用:', freeApiError);
-      
-      // 如果所有API都失败，返回完整的模拟数据
-      console.log('使用离线模式生成分析结果...');
+    if (bestAPI === 'openai') {
+      console.log('使用OpenAI GPT-4o API进行分析（优先选择）...');
+      return await analyzeWithOpenAI(processedImage);
+    } else if (bestAPI === 'groq') {
+      console.log('使用Groq API进行分析...');
+      return await analyzeWithGroq(processedImage);
+    } else {
+      console.warn('没有可用的API，使用离线模式生成分析结果...');
       return generateCompleteAnalysis({});
     }
+  } catch (primaryError) {
+    console.warn(`${bestAPI} API调用失败:`, primaryError);
+    
+    // 如果主选API是OpenAI失败了，只有在有Groq密钥的情况下才尝试Groq
+    if (bestAPI === 'openai' && API_CONFIG.GROQ_API_KEY && API_CONFIG.GROQ_API_KEY.trim() !== '') {
+      const groqStatus = apiStatusMap.get('groq');
+      if (groqStatus?.available) {
+        try {
+          console.log('OpenAI失败，尝试备用API: Groq');
+          return await analyzeWithGroq(processedImage);
+        } catch (fallbackError) {
+          console.warn('备用API Groq 也失败:', fallbackError);
+        }
+      }
+    }
+    // 如果主选API是Groq失败了，不再尝试OpenAI（因为用户明确要求优先OpenAI）
+    else if (bestAPI === 'groq') {
+      console.log('Groq API失败，由于用户设置优先OpenAI，不进行API切换');
+    }
+    
+    // 如果所有API都失败，返回完整的模拟数据
+    console.log('所有可用API都失败，使用离线模式生成分析结果...');
+    return generateCompleteAnalysis({});
   }
 }
 
@@ -1712,4 +1896,101 @@ export function validateAnalysisResult(result: any): PalmAnalysisResponse {
   }
   
   return result as PalmAnalysisResponse;
+}
+
+/**
+ * 获取API状态信息
+ */
+export function getAPIStatus() {
+  const openaiStatus = apiStatusMap.get('openai');
+  const groqStatus = apiStatusMap.get('groq');
+  
+  return {
+    openai: {
+      available: openaiStatus?.available || false,
+      lastSuccess: openaiStatus?.lastSuccessTime,
+      lastFailure: openaiStatus?.lastError,
+      failureCount: openaiStatus?.failureCount || 0,
+      responseTime: openaiStatus?.responseTime || 0
+    },
+    groq: {
+      available: groqStatus?.available || false,
+      lastSuccess: groqStatus?.lastSuccessTime,
+      lastFailure: groqStatus?.lastError,
+      failureCount: groqStatus?.failureCount || 0,
+      responseTime: groqStatus?.responseTime || 0
+    }
+  };
+}
+
+/**
+ * 重置API状态
+ */
+export function resetAPIStatus(apiName?: 'openai' | 'groq') {
+  if (apiName) {
+    apiStatusMap.set(apiName, {
+      name: apiName === 'openai' ? 'OpenAI GPT-4o' : 'Groq Llama3',
+      available: true,
+      lastError: undefined,
+      lastSuccessTime: undefined,
+      failureCount: 0,
+      responseTime: undefined
+    });
+  } else {
+    // 重置所有API状态
+    apiStatusMap.set('openai', {
+      name: 'OpenAI GPT-4o',
+      available: true,
+      lastError: undefined,
+      lastSuccessTime: undefined,
+      failureCount: 0,
+      responseTime: undefined
+    });
+    apiStatusMap.set('groq', {
+      name: 'Groq Llama3',
+      available: true,
+      lastError: undefined,
+      lastSuccessTime: undefined,
+      failureCount: 0,
+      responseTime: undefined
+    });
+  }
+}
+
+/**
+ * 测试API连接性
+ */
+export async function testAPIConnection(apiName: 'openai' | 'groq'): Promise<boolean> {
+  try {
+    const testImage = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
+    
+    if (apiName === 'openai') {
+      await analyzeWithOpenAI(testImage);
+    } else {
+      await analyzeWithGroq(testImage);
+    }
+    
+    return true;
+  } catch (error) {
+    console.warn(`${apiName} API连接测试失败:`, error);
+    return false;
+  }
+}
+
+/**
+ * 记录API调用日志
+ */
+function logAPICall(apiName: string, success: boolean, responseTime: number, error?: any) {
+  const timestamp = new Date().toISOString();
+  const logEntry = {
+    timestamp,
+    api: apiName,
+    success,
+    responseTime,
+    error: error?.message || null
+  };
+  
+  console.log(`[API调用日志] ${JSON.stringify(logEntry)}`);
+  
+  // 可以在这里添加更复杂的日志记录逻辑，比如发送到监控服务
 }
