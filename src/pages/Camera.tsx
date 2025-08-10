@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, RefreshCw, AlertCircle, Settings, Monitor, Video, Shield, Bug } from 'lucide-react';
+import { ArrowLeft, Camera, RefreshCw, AlertCircle, Settings, Monitor, Video, Shield, Bug, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStore } from '../store/useStore';
 
@@ -27,10 +27,13 @@ export default function CameraPage() {
   const { setCurrentImage } = useStore();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<'camera' | 'upload'>('camera');
   const [permissionState, setPermissionState] = useState<PermissionState>('requesting');
   const [errorMessage, setErrorMessage] = useState('');
   const [availableDevices, setAvailableDevices] = useState<CameraDevice[]>([]);
@@ -257,11 +260,74 @@ export default function CameraPage() {
   }, [startCamera]);
 
   const confirmPhoto = useCallback(() => {
-    if (capturedImage) {
-      setCurrentImage(capturedImage);
+    const imageToUse = mode === 'camera' ? capturedImage : uploadedImage;
+    if (imageToUse) {
+      setCurrentImage(imageToUse);
       navigate('/analysis');
     }
-  }, [capturedImage, setCurrentImage, navigate]);
+  }, [capturedImage, uploadedImage, mode, setCurrentImage, navigate]);
+
+  // 文件上传处理
+  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 文件类型验证
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('请选择 JPG、PNG 或 WebP 格式的图片');
+      return;
+    }
+
+    // 文件大小验证 (10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('图片文件大小不能超过 10MB');
+      return;
+    }
+
+    // 读取文件并转换为 base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        setUploadedImage(result);
+        setCapturedImage(null); // 清除拍摄的照片
+        toast.success('图片上传成功！');
+      }
+    };
+    reader.onerror = () => {
+      toast.error('图片读取失败，请重试');
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  // 触发文件选择
+  const triggerFileSelect = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // 清除上传的图片
+  const clearUploadedImage = useCallback(() => {
+    setUploadedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, []);
+
+  // 切换模式
+  const switchMode = useCallback((newMode: 'camera' | 'upload') => {
+    setMode(newMode);
+    if (newMode === 'camera') {
+      clearUploadedImage();
+      if (!stream && permissionState !== 'granted') {
+        startCamera();
+      }
+    } else {
+      stopCamera();
+      setCapturedImage(null);
+    }
+  }, [stream, permissionState, startCamera, stopCamera, clearUploadedImage]);
 
   // 获取浏览器名称
   const getBrowserName = useCallback(() => {
@@ -285,11 +351,14 @@ export default function CameraPage() {
     return guides[browser as keyof typeof guides] || '在浏览器设置中允许此网站访问摄像头';
   }, [getBrowserName]);
 
-  // 初始化摄像头
+  // 初始化
   useEffect(() => {
     // 初始化调试信息
     updateDebugInfo();
-    startCamera();
+    // 只在拍照模式下自动启动摄像头
+    if (mode === 'camera') {
+      startCamera();
+    }
     return () => {
       stopCamera();
     };
@@ -451,7 +520,7 @@ export default function CameraPage() {
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold">拍摄手相</h1>
+          <h1 className="text-lg font-semibold">{mode === 'camera' ? '拍摄手相' : '上传手相'}</h1>
           <div className="flex items-center space-x-2">
             {/* 调试信息按钮 */}
             <button
@@ -490,6 +559,34 @@ export default function CameraPage() {
           </div>
         </div>
 
+        {/* 模式切换选项卡 */}
+        <div className="mx-4 mb-4">
+          <div className="flex bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => switchMode('camera')}
+              className={`flex-1 flex items-center justify-center py-2 px-4 rounded-md transition-all ${
+                mode === 'camera'
+                  ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 font-semibold'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              拍摄照片
+            </button>
+            <button
+              onClick={() => switchMode('upload')}
+              className={`flex-1 flex items-center justify-center py-2 px-4 rounded-md transition-all ${
+                mode === 'upload'
+                  ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 font-semibold'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              上传图片
+            </button>
+          </div>
+        </div>
+
         {/* 调试信息面板 */}
         {showDebugInfo && (
           <div className="mx-4 mb-4 p-4 bg-gray-800 rounded-lg text-white text-xs">
@@ -514,67 +611,146 @@ export default function CameraPage() {
           </div>
         )}
 
-        {/* Camera View */}
+        {/* Camera/Upload View */}
         <div className="relative mx-4 mb-6">
           <div className="relative aspect-square bg-black rounded-2xl overflow-hidden">
-            {permissionState === 'denied' ? (
-              renderPermissionDenied()
-            ) : permissionState === 'https_required' ? (
-              renderHttpsRequired()
-            ) : permissionState === 'unavailable' || permissionState === 'error' ? (
-              renderUnavailable()
-            ) : capturedImage ? (
-              <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
-            ) : (
-              <>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="text-white text-center">
-                      <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-                      <p>正在启动摄像头...</p>
-                    </div>
+            {mode === 'upload' ? (
+              // 上传模式界面
+              uploadedImage ? (
+                <div className="relative w-full h-full">
+                  <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-cover" />
+                  <button
+                    onClick={clearUploadedImage}
+                    className="absolute top-4 right-4 p-2 bg-red-500 hover:bg-red-600 rounded-full text-white transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                  <div className="mb-6">
+                    <ImageIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">选择手相图片</h3>
+                    <p className="text-gray-300 text-sm mb-4">
+                      支持 JPG、PNG、WebP 格式<br />
+                      文件大小不超过 10MB
+                    </p>
                   </div>
-                )}
-              </>
+                  
+                  <button
+                    onClick={triggerFileSelect}
+                    className="flex items-center px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 rounded-lg font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all"
+                  >
+                    <Upload className="w-5 h-5 mr-2" />
+                    选择图片
+                  </button>
+                  
+                  <div className="mt-6 text-xs text-gray-400">
+                    <p>• 请确保图片清晰可见手掌纹路</p>
+                    <p>• 建议在光线充足的环境下拍摄</p>
+                    <p>• 手掌应完整显示在图片中</p>
+                  </div>
+                </div>
+              )
+            ) : (
+              // 拍照模式界面（原有逻辑）
+              permissionState === 'denied' ? (
+                renderPermissionDenied()
+              ) : permissionState === 'https_required' ? (
+                renderHttpsRequired()
+              ) : permissionState === 'unavailable' || permissionState === 'error' ? (
+                renderUnavailable()
+              ) : capturedImage ? (
+                <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
+              ) : (
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                      <div className="text-white text-center">
+                        <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
+                        <p>正在启动摄像头...</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
             )}
           </div>
         </div>
 
         {/* Controls */}
         <div className="px-4 pb-8">
-          {capturedImage ? (
-            <div className="flex space-x-4">
+          {mode === 'upload' ? (
+            // 上传模式控制按钮
+            uploadedImage ? (
+              <div className="flex space-x-4">
+                <button
+                  onClick={clearUploadedImage}
+                  className="flex-1 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                >
+                  重新选择
+                </button>
+                <button
+                  onClick={confirmPhoto}
+                  className="flex-1 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 rounded-lg font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all"
+                >
+                  开始分析
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={retakePhoto}
-                className="flex-1 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                onClick={triggerFileSelect}
+                className="w-full py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 rounded-lg font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all flex items-center justify-center"
               >
-                重新拍摄
+                <Upload className="w-6 h-6 mr-2" />
+                选择图片文件
               </button>
-              <button
-                onClick={confirmPhoto}
-                className="flex-1 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 rounded-lg font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all"
-              >
-                确认使用
-              </button>
-            </div>
+            )
           ) : (
-            <button
-              onClick={capturePhoto}
-              disabled={permissionState !== 'granted' || isLoading}
-              className="w-full py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 rounded-lg font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              <Camera className="w-6 h-6 mr-2" />
-              拍摄照片
-            </button>
+            // 拍照模式控制按钮（原有逻辑）
+            capturedImage ? (
+              <div className="flex space-x-4">
+                <button
+                  onClick={retakePhoto}
+                  className="flex-1 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                >
+                  重新拍摄
+                </button>
+                <button
+                  onClick={confirmPhoto}
+                  className="flex-1 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 rounded-lg font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all"
+                >
+                  开始分析
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={capturePhoto}
+                disabled={permissionState !== 'granted' || isLoading}
+                className="w-full py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-blue-900 rounded-lg font-semibold hover:from-yellow-300 hover:to-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                <Camera className="w-6 h-6 mr-2" />
+                拍摄照片
+              </button>
+            )
           )}
         </div>
+
+        {/* 隐藏的文件输入元素 */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
 
         <canvas ref={canvasRef} className="hidden" />
       </div>
