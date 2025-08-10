@@ -102,16 +102,27 @@ const Analysis: React.FC = () => {
       }
     };
 
+    let currentStepRef = 0;
+
     // Simulate analysis progress
     const interval = setInterval(() => {
       setProgress(prev => {
         const newProgress = prev + Math.random() * 15 + 5;
         
         // Update current step based on progress
-        if (newProgress >= 20 && currentStep < 1) setCurrentStep(1);
-        else if (newProgress >= 40 && currentStep < 2) setCurrentStep(2);
-        else if (newProgress >= 60 && currentStep < 3) setCurrentStep(3);
-        else if (newProgress >= 80 && currentStep < 4) setCurrentStep(4);
+        if (newProgress >= 20 && currentStepRef < 1) {
+          currentStepRef = 1;
+          setCurrentStep(1);
+        } else if (newProgress >= 40 && currentStepRef < 2) {
+          currentStepRef = 2;
+          setCurrentStep(2);
+        } else if (newProgress >= 60 && currentStepRef < 3) {
+          currentStepRef = 3;
+          setCurrentStep(3);
+        } else if (newProgress >= 80 && currentStepRef < 4) {
+          currentStepRef = 4;
+          setCurrentStep(4);
+        }
         
         if (newProgress >= 100) {
           clearInterval(interval);
@@ -132,7 +143,7 @@ const Analysis: React.FC = () => {
       clearInterval(interval);
       setAnalyzing(false);
     };
-  }, [currentImage, navigate, setAnalyzing, addAnalysis, currentStep]);
+  }, [currentImage, navigate, setAnalyzing, addAnalysis]);
 
   if (!currentImage) {
     return null;

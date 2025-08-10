@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Share2, Download, RotateCcw, Heart, Brain, Zap, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Share2, Download, Heart, Brain, Zap, TrendingUp, User, Eye, Lightbulb, Target, BookOpen, Users, Sparkles, Activity, Shield, Briefcase, MessageCircle, Clock, Star, Award, CheckCircle, Microscope, Hand, MapPin, Calendar, Compass } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { toast } from 'sonner';
 
@@ -8,6 +8,7 @@ const Result: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { analyses } = useStore();
+  const [activeTab, setActiveTab] = useState('overview');
   
   const analysis = analyses.find(a => a.id === id);
 
@@ -43,42 +44,116 @@ const Result: React.FC = () => {
   };
 
   const handleDownload = () => {
-    // Create a simple text report
+    // Create a comprehensive text report
+    const result = analysis.result;
     const report = `
-手相分析报告
-=============
+手相分析详细报告
+==================
 
 分析时间: ${new Date(analysis.timestamp).toLocaleString()}
-手型: ${analysis.result.handType}
 
-生命线: ${analysis.result.lifeLine}
+=== 基础手相特征 ===
+手型分类: ${result.basicFeatures?.handType || '未分析'}
+手掌大小: ${result.basicFeatures?.handSize || '未分析'}
+皮肤纹理: ${result.basicFeatures?.skinTexture || '未分析'}
+手掌厚度: ${result.basicFeatures?.palmThickness || '未分析'}
+手指长度: ${result.basicFeatures?.fingerLength || '未分析'}
+指甲形状: ${result.basicFeatures?.nailShape || '未分析'}
+拇指分析: ${result.basicFeatures?.thumbAnalysis || '未分析'}
 
-感情线: ${analysis.result.heartLine}
+=== 手掌纹线分析 ===
+生命线:
+  描述: ${result.palmLines?.lifeLine?.description || '未分析'}
+  健康含义: ${result.palmLines?.lifeLine?.healthImplications || '未分析'}
+  精力水平: ${result.palmLines?.lifeLine?.energyLevel || '未分析'}
+  人生阶段: ${result.palmLines?.lifeLine?.lifeStages || '未分析'}
 
-智慧线: ${analysis.result.headLine}
+感情线:
+  描述: ${result.palmLines?.heartLine?.description || '未分析'}
+  情感风格: ${result.palmLines?.heartLine?.emotionalStyle || '未分析'}
+  关系模式: ${result.palmLines?.heartLine?.relationshipPattern || '未分析'}
+  共情能力: ${result.palmLines?.heartLine?.empathyLevel || '未分析'}
 
-性格特点: ${analysis.result.personality.join(', ')}
+智慧线:
+  描述: ${result.palmLines?.headLine?.description || '未分析'}
+  思维风格: ${result.palmLines?.headLine?.thinkingStyle || '未分析'}
+  决策能力: ${result.palmLines?.headLine?.decisionMaking || '未分析'}
+  学习风格: ${result.palmLines?.headLine?.learningStyle || '未分析'}
+  创造力: ${result.palmLines?.headLine?.creativity || '未分析'}
 
-运势: ${analysis.result.fortune}
+事业线: ${result.palmLines?.fateLine || '未分析'}
+婚姻线: ${result.palmLines?.marriageLine || '未分析'}
+其他纹线: ${result.palmLines?.otherLines || '未分析'}
 
-健康: ${analysis.result.health}
+=== 心理特征分析 ===
+MBTI预测: ${result.psychologicalProfile?.mbtiPrediction || '未分析'}
+认知风格: ${result.psychologicalProfile?.cognitiveStyle || '未分析'}
+情绪模式: ${result.psychologicalProfile?.emotionalPattern || '未分析'}
+行为倾向: ${result.psychologicalProfile?.behaviorTendency || '未分析'}
+压力反应: ${result.psychologicalProfile?.stressResponse || '未分析'}
+社交风格: ${result.psychologicalProfile?.socialStyle || '未分析'}
+动机驱动: ${result.psychologicalProfile?.motivationDrivers || '未分析'}
+潜意识特征: ${result.psychologicalProfile?.unconsciousTraits || '未分析'}
 
-事业: ${analysis.result.career}
+=== 详细分析 ===
+核心优势: ${result.detailedAnalysis?.strengths?.join(', ') || '未分析'}
+面临挑战: ${result.detailedAnalysis?.challenges?.join(', ') || '未分析'}
+性格特质: ${result.detailedAnalysis?.personalityTraits?.join(', ') || '未分析'}
+沟通风格: ${result.detailedAnalysis?.communicationStyle || '未分析'}
+领导潜质: ${result.detailedAnalysis?.leadershipPotential || '未分析'}
+适应能力: ${result.detailedAnalysis?.adaptability || '未分析'}
 
-感情: ${analysis.result.love}
+=== 实用建议 ===
+职业指导:
+  适合领域: ${result.practicalAdvice?.careerGuidance?.suitableFields?.join(', ') || '未分析'}
+  工作风格: ${result.practicalAdvice?.careerGuidance?.workStyle || '未分析'}
+  发展路径: ${result.practicalAdvice?.careerGuidance?.developmentPath || '未分析'}
+  技能提升: ${result.practicalAdvice?.careerGuidance?.skillsToImprove?.join(', ') || '未分析'}
+
+人际关系:
+  恋爱风格: ${result.practicalAdvice?.relationshipAdvice?.loveStyle || '未分析'}
+  沟通建议: ${result.practicalAdvice?.relationshipAdvice?.communicationTips || '未分析'}
+  冲突解决: ${result.practicalAdvice?.relationshipAdvice?.conflictResolution || '未分析'}
+
+个人发展:
+  学习建议: ${result.practicalAdvice?.personalDevelopment?.learningRecommendations || '未分析'}
+  时间管理: ${result.practicalAdvice?.personalDevelopment?.timeManagement || '未分析'}
+  压力管理: ${result.practicalAdvice?.personalDevelopment?.stressManagement || '未分析'}
+  健康建议: ${result.practicalAdvice?.personalDevelopment?.healthTips || '未分析'}
+
+行动计划:
+  短期建议: ${result.practicalAdvice?.actionPlan?.shortTerm?.join(', ') || '未分析'}
+  长期目标: ${result.practicalAdvice?.actionPlan?.longTerm?.join(', ') || '未分析'}
+  日常实践: ${result.practicalAdvice?.actionPlan?.dailyPractices?.join(', ') || '未分析'}
+
+=== 人生经历推测 ===
+职业经历: ${result.lifeExperiences?.careerHistory || '未分析'}
+教育背景: ${result.lifeExperiences?.educationalBackground || '未分析'}
+重大事件: ${result.lifeExperiences?.majorLifeEvents || '未分析'}
+兴趣爱好: ${result.lifeExperiences?.hobbiesAndInterests || '未分析'}
+旅行经历: ${result.lifeExperiences?.travelExperiences || '未分析'}
+感情经历: ${result.lifeExperiences?.relationshipHistory || '未分析'}
+健康挑战: ${result.lifeExperiences?.healthChallenges || '未分析'}
+个人成长: ${result.lifeExperiences?.personalGrowth || '未分析'}
+
+=== 免责声明 ===
+本分析结果基于传统手相学理论结合现代心理学、行为科学和神经科学理论，
+采用AI技术进行综合分析，仅供娱乐和自我认知参考。
+每个人的命运和发展掌握在自己手中，请理性对待分析结果，
+将其作为自我了解和个人成长的参考工具。
     `;
     
     const blob = new Blob([report], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `手相分析报告_${new Date(analysis.timestamp).toLocaleDateString()}.txt`;
+    a.download = `手相分析详细报告_${new Date(analysis.timestamp).toLocaleDateString()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    toast.success('报告已下载');
+    toast.success('详细报告已下载');
   };
 
   const formatDate = (timestamp: number) => {
@@ -140,111 +215,611 @@ const Result: React.FC = () => {
           </div>
         </div>
 
-        {/* Hand Type */}
+        {/* MBTI & Hand Type */}
         <div className="p-6 bg-white border-b">
           <div className="text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Zap className="w-8 h-8 text-blue-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">您的手型：{analysis.result.handType}</h2>
-            <div className="flex flex-wrap justify-center gap-2 mb-4">
-              {analysis.result.personality.map((trait, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                >
-                  {trait}
-                </span>
-              ))}
+            {/* MBTI Type */}
+            {analysis.result.mbtiType && (
+              <div className="mb-6">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="w-10 h-10 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">{analysis.result.mbtiType}</h2>
+                <p className="text-gray-600 mb-4 max-w-md mx-auto leading-relaxed">
+                  {analysis.result.mbtiDescription}
+                </p>
+              </div>
+            )}
+            
+            {/* Hand Type */}
+            <div className="border-t pt-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">手型：{analysis.result.handType}</h3>
+              <div className="flex flex-wrap justify-center gap-2 mb-4">
+                {analysis.result.personality.map((trait, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                  >
+                    {trait}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Palm Lines Analysis */}
+        {/* Tab Navigation */}
         <div className="bg-white border-b">
-          <div className="p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">手相线条分析</h3>
-            
-            <div className="space-y-6">
-              {/* Life Line */}
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-6 h-6 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800 mb-2">生命线</h4>
-                  <p className="text-gray-600 leading-relaxed">{analysis.result.lifeLine}</p>
-                </div>
-              </div>
-
-              {/* Heart Line */}
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-6 h-6 text-red-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800 mb-2">感情线</h4>
-                  <p className="text-gray-600 leading-relaxed">{analysis.result.heartLine}</p>
-                </div>
-              </div>
-
-              {/* Head Line */}
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Brain className="w-6 h-6 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800 mb-2">智慧线</h4>
-                  <p className="text-gray-600 leading-relaxed">{analysis.result.headLine}</p>
-                </div>
-              </div>
-            </div>
+          <div className="flex overflow-x-auto">
+            {[
+              { id: 'overview', label: '概览', icon: Eye },
+              { id: 'detailed', label: '详细分析', icon: Sparkles },
+              { id: 'psychology', label: '心理特征', icon: Brain },
+              { id: 'advice', label: '实用建议', icon: Lightbulb },
+              { id: 'experiences', label: '人生经历', icon: Compass }
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-6 py-4 font-medium whitespace-nowrap transition-colors ${
+                    activeTab === tab.id
+                      ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Detailed Analysis */}
+        {/* Tab Content */}
         <div className="bg-white">
-          <div className="p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">详细解读</h3>
-            
-            <div className="grid gap-6">
-              {/* Fortune */}
-              <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl">
-                <div className="flex items-center mb-3">
-                  <TrendingUp className="w-5 h-5 text-yellow-600 mr-2" />
-                  <h4 className="font-semibold text-yellow-800">运势分析</h4>
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">手相线条分析</h3>
+              
+              <div className="space-y-6">
+                {/* Life Line */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800 mb-2">生命线</h4>
+                    <p className="text-gray-600 leading-relaxed">{analysis.result.lifeLine}</p>
+                  </div>
                 </div>
-                <p className="text-yellow-700 leading-relaxed">{analysis.result.fortune}</p>
+
+                {/* Heart Line */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800 mb-2">感情线</h4>
+                    <p className="text-gray-600 leading-relaxed">{analysis.result.heartLine}</p>
+                  </div>
+                </div>
+
+                {/* Head Line */}
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Brain className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800 mb-2">智慧线</h4>
+                    <p className="text-gray-600 leading-relaxed">{analysis.result.headLine}</p>
+                  </div>
+                </div>
               </div>
 
-              {/* Health */}
-              <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
-                <div className="flex items-center mb-3">
-                  <Heart className="w-5 h-5 text-green-600 mr-2" />
-                  <h4 className="font-semibold text-green-800">健康状况</h4>
-                </div>
-                <p className="text-green-700 leading-relaxed">{analysis.result.health}</p>
-              </div>
+              {/* Basic Fortune Analysis */}
+              <div className="mt-8">
+                <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">运势概览</h3>
+                <div className="grid gap-4">
+                  <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl">
+                    <div className="flex items-center mb-3">
+                      <TrendingUp className="w-5 h-5 text-yellow-600 mr-2" />
+                      <h4 className="font-semibold text-yellow-800">运势分析</h4>
+                    </div>
+                    <p className="text-yellow-700 leading-relaxed">{analysis.result.fortune}</p>
+                  </div>
 
-              {/* Career */}
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
-                <div className="flex items-center mb-3">
-                  <Zap className="w-5 h-5 text-blue-600 mr-2" />
-                  <h4 className="font-semibold text-blue-800">事业发展</h4>
-                </div>
-                <p className="text-blue-700 leading-relaxed">{analysis.result.career}</p>
-              </div>
+                  <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                    <div className="flex items-center mb-3">
+                      <Heart className="w-5 h-5 text-green-600 mr-2" />
+                      <h4 className="font-semibold text-green-800">健康状况</h4>
+                    </div>
+                    <p className="text-green-700 leading-relaxed">{analysis.result.health}</p>
+                  </div>
 
-              {/* Love */}
-              <div className="p-4 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl">
-                <div className="flex items-center mb-3">
-                  <Heart className="w-5 h-5 text-pink-600 mr-2" />
-                  <h4 className="font-semibold text-pink-800">感情运势</h4>
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                    <div className="flex items-center mb-3">
+                      <Zap className="w-5 h-5 text-blue-600 mr-2" />
+                      <h4 className="font-semibold text-blue-800">事业发展</h4>
+                    </div>
+                    <p className="text-blue-700 leading-relaxed">{analysis.result.career}</p>
+                  </div>
+
+                  <div className="p-4 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl">
+                    <div className="flex items-center mb-3">
+                      <Heart className="w-5 h-5 text-pink-600 mr-2" />
+                      <h4 className="font-semibold text-pink-800">感情运势</h4>
+                    </div>
+                    <p className="text-pink-700 leading-relaxed">{analysis.result.love}</p>
+                  </div>
                 </div>
-                <p className="text-pink-700 leading-relaxed">{analysis.result.love}</p>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Detailed Analysis Tab */}
+          {activeTab === 'detailed' && analysis.result.detailedAnalysis && (
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">详细手相分析</h3>
+              
+              <div className="space-y-6">
+                <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Star className="w-5 h-5 text-green-600 mr-2" />
+                    <h4 className="font-semibold text-green-800">核心优势</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {analysis.result.detailedAnalysis.strengths?.map((strength, index) => (
+                      <div key={index} className="flex items-center">
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                        <span className="text-green-700">{strength}</span>
+                      </div>
+                    )) || <p className="text-green-700">分析中...</p>}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Shield className="w-5 h-5 text-orange-600 mr-2" />
+                    <h4 className="font-semibold text-orange-800">面临挑战</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {analysis.result.detailedAnalysis.challenges?.map((challenge, index) => (
+                      <div key={index} className="flex items-center">
+                        <Activity className="w-4 h-4 text-orange-600 mr-2" />
+                        <span className="text-orange-700">{challenge}</span>
+                      </div>
+                    )) || <p className="text-orange-700">分析中...</p>}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <User className="w-5 h-5 text-blue-600 mr-2" />
+                    <h4 className="font-semibold text-blue-800">性格特质</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.result.detailedAnalysis.personalityTraits?.map((trait, index) => (
+                      <span key={index} className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm">
+                        {trait}
+                      </span>
+                    )) || <p className="text-blue-700">分析中...</p>}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <MessageCircle className="w-5 h-5 text-purple-600 mr-2" />
+                    <h4 className="font-semibold text-purple-800">沟通风格</h4>
+                  </div>
+                  <p className="text-purple-700 leading-relaxed">{analysis.result.detailedAnalysis.communicationStyle || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Award className="w-5 h-5 text-indigo-600 mr-2" />
+                    <h4 className="font-semibold text-indigo-800">领导潜质</h4>
+                  </div>
+                  <p className="text-indigo-700 leading-relaxed">{analysis.result.detailedAnalysis.leadershipPotential || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Zap className="w-5 h-5 text-teal-600 mr-2" />
+                    <h4 className="font-semibold text-teal-800">适应能力</h4>
+                  </div>
+                  <p className="text-teal-700 leading-relaxed">{analysis.result.detailedAnalysis.adaptability || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Hand className="w-5 h-5 text-gray-600 mr-2" />
+                    <h4 className="font-semibold text-gray-800">手部纹理</h4>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">{analysis.result.detailedAnalysis.handTexture || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Activity className="w-5 h-5 text-cyan-600 mr-2" />
+                    <h4 className="font-semibold text-cyan-800">手指灵活度</h4>
+                  </div>
+                  <p className="text-cyan-700 leading-relaxed">{analysis.result.detailedAnalysis.fingerFlexibility || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-rose-50 to-rose-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Heart className="w-5 h-5 text-rose-600 mr-2" />
+                    <h4 className="font-semibold text-rose-800">手掌温度</h4>
+                  </div>
+                  <p className="text-rose-700 leading-relaxed">{analysis.result.detailedAnalysis.palmTemperature || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <TrendingUp className="w-5 h-5 text-emerald-600 mr-2" />
+                    <h4 className="font-semibold text-emerald-800">血管分布</h4>
+                  </div>
+                  <p className="text-emerald-700 leading-relaxed">{analysis.result.detailedAnalysis.bloodVessels || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Shield className="w-5 h-5 text-amber-600 mr-2" />
+                    <h4 className="font-semibold text-amber-800">肌肉发达程度</h4>
+                  </div>
+                  <p className="text-amber-700 leading-relaxed">{analysis.result.detailedAnalysis.muscleDevelopment || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-lime-50 to-lime-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Sparkles className="w-5 h-5 text-lime-600 mr-2" />
+                    <h4 className="font-semibold text-lime-800">皮肤弹性</h4>
+                  </div>
+                  <p className="text-lime-700 leading-relaxed">{analysis.result.detailedAnalysis.skinElasticity || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-violet-50 to-violet-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Star className="w-5 h-5 text-violet-600 mr-2" />
+                    <h4 className="font-semibold text-violet-800">指甲健康</h4>
+                  </div>
+                  <p className="text-violet-700 leading-relaxed">{analysis.result.detailedAnalysis.nailHealth || '分析中...'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Psychology Tab */}
+          {activeTab === 'psychology' && analysis.result.psychologicalProfile && (
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">心理特征分析</h3>
+              
+              <div className="space-y-6">
+                <div className="p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Brain className="w-5 h-5 text-indigo-600 mr-2" />
+                    <h4 className="font-semibold text-indigo-800">MBTI预测</h4>
+                  </div>
+                  <p className="text-indigo-700 leading-relaxed">{analysis.result.psychologicalProfile.mbtiPrediction || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Eye className="w-5 h-5 text-purple-600 mr-2" />
+                    <h4 className="font-semibold text-purple-800">认知风格</h4>
+                  </div>
+                  <p className="text-purple-700 leading-relaxed">{analysis.result.psychologicalProfile.cognitiveStyle || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Heart className="w-5 h-5 text-blue-600 mr-2" />
+                    <h4 className="font-semibold text-blue-800">情绪模式</h4>
+                  </div>
+                  <p className="text-blue-700 leading-relaxed">{analysis.result.psychologicalProfile.emotionalPattern || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Users className="w-5 h-5 text-green-600 mr-2" />
+                    <h4 className="font-semibold text-green-800">行为倾向</h4>
+                  </div>
+                  <p className="text-green-700 leading-relaxed">{analysis.result.psychologicalProfile.behaviorTendency || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-red-50 to-red-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Activity className="w-5 h-5 text-red-600 mr-2" />
+                    <h4 className="font-semibold text-red-800">压力反应</h4>
+                  </div>
+                  <p className="text-red-700 leading-relaxed">{analysis.result.psychologicalProfile.stressResponse || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <MessageCircle className="w-5 h-5 text-yellow-600 mr-2" />
+                    <h4 className="font-semibold text-yellow-800">社交风格</h4>
+                  </div>
+                  <p className="text-yellow-700 leading-relaxed">{analysis.result.psychologicalProfile.socialStyle || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Zap className="w-5 h-5 text-teal-600 mr-2" />
+                    <h4 className="font-semibold text-teal-800">动机驱动</h4>
+                  </div>
+                  <p className="text-teal-700 leading-relaxed">{analysis.result.psychologicalProfile.motivationDrivers || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Lightbulb className="w-5 h-5 text-pink-600 mr-2" />
+                    <h4 className="font-semibold text-pink-800">潜意识特征</h4>
+                  </div>
+                  <p className="text-pink-700 leading-relaxed">{analysis.result.psychologicalProfile.unconsciousTraits || '分析中...'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Advice Tab */}
+          {activeTab === 'advice' && analysis.result.practicalAdvice && (
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">实用建议</h3>
+              
+              <div className="space-y-6">
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Briefcase className="w-5 h-5 text-blue-600 mr-2" />
+                    <h4 className="font-semibold text-blue-800">职业指导</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <h5 className="text-sm font-medium text-blue-700 mb-1">适合领域</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {analysis.result.practicalAdvice.careerGuidance?.suitableFields?.map((field, index) => (
+                          <span key={index} className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-sm">{field}</span>
+                        )) || <span className="text-blue-700 text-sm">分析中...</span>}
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-blue-700 mb-1">工作风格</h5>
+                      <p className="text-blue-700 text-sm">{analysis.result.practicalAdvice.careerGuidance?.workStyle || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-blue-700 mb-1">发展路径</h5>
+                      <p className="text-blue-700 text-sm">{analysis.result.practicalAdvice.careerGuidance?.developmentPath || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-blue-700 mb-1">行业推荐</h5>
+                      <p className="text-blue-700 text-sm">{analysis.result.practicalAdvice.careerGuidance?.industryRecommendations || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-blue-700 mb-1">领导风格</h5>
+                      <p className="text-blue-700 text-sm">{analysis.result.practicalAdvice.careerGuidance?.leadershipStyle || '分析中...'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Heart className="w-5 h-5 text-pink-600 mr-2" />
+                    <h4 className="font-semibold text-pink-800">人际关系</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <h5 className="text-sm font-medium text-pink-700 mb-1">恋爱风格</h5>
+                      <p className="text-pink-700 text-sm">{analysis.result.practicalAdvice.relationshipAdvice?.loveStyle || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-pink-700 mb-1">沟通建议</h5>
+                      <p className="text-pink-700 text-sm">{analysis.result.practicalAdvice.relationshipAdvice?.communicationTips || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-pink-700 mb-1">冲突解决</h5>
+                      <p className="text-pink-700 text-sm">{analysis.result.practicalAdvice.relationshipAdvice?.conflictResolution || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-pink-700 mb-1">伴侣匹配</h5>
+                      <p className="text-pink-700 text-sm">{analysis.result.practicalAdvice.relationshipAdvice?.partnerCompatibility || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-pink-700 mb-1">家庭关系</h5>
+                      <p className="text-pink-700 text-sm">{analysis.result.practicalAdvice.relationshipAdvice?.familyRelations || '分析中...'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <BookOpen className="w-5 h-5 text-green-600 mr-2" />
+                    <h4 className="font-semibold text-green-800">个人发展</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <h5 className="text-sm font-medium text-green-700 mb-1">学习建议</h5>
+                      <p className="text-green-700 text-sm">{analysis.result.practicalAdvice.personalDevelopment?.learningRecommendations || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-green-700 mb-1">时间管理</h5>
+                      <p className="text-green-700 text-sm">{analysis.result.practicalAdvice.personalDevelopment?.timeManagement || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-green-700 mb-1">压力管理</h5>
+                      <p className="text-green-700 text-sm">{analysis.result.practicalAdvice.personalDevelopment?.stressManagement || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-green-700 mb-1">健康建议</h5>
+                      <p className="text-green-700 text-sm">{analysis.result.practicalAdvice.personalDevelopment?.healthTips || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-green-700 mb-1">情商提升</h5>
+                      <p className="text-green-700 text-sm">{analysis.result.practicalAdvice.personalDevelopment?.emotionalIntelligence || '分析中...'}</p>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-green-700 mb-1">创造力开发</h5>
+                      <p className="text-green-700 text-sm">{analysis.result.practicalAdvice.personalDevelopment?.creativityDevelopment || '分析中...'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Target className="w-5 h-5 text-orange-600 mr-2" />
+                    <h4 className="font-semibold text-orange-800">行动计划</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <h5 className="text-sm font-medium text-orange-700 mb-1">短期建议</h5>
+                      <ul className="text-orange-700 text-sm space-y-1">
+                        {analysis.result.practicalAdvice.actionPlan?.shortTerm?.map((item, index) => (
+                          <li key={index} className="flex items-start">
+                            <CheckCircle className="w-3 h-3 text-orange-600 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>{item}</span>
+                          </li>
+                        )) || <li className="text-orange-700">分析中...</li>}
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-orange-700 mb-1">长期目标</h5>
+                      <ul className="text-orange-700 text-sm space-y-1">
+                        {analysis.result.practicalAdvice.actionPlan?.longTerm?.map((item, index) => (
+                          <li key={index} className="flex items-start">
+                            <Star className="w-3 h-3 text-orange-600 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>{item}</span>
+                          </li>
+                        )) || <li className="text-orange-700">分析中...</li>}
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-orange-700 mb-1">日常实践</h5>
+                      <ul className="text-orange-700 text-sm space-y-1">
+                        {analysis.result.practicalAdvice.actionPlan?.dailyPractices?.map((item, index) => (
+                          <li key={index} className="flex items-start">
+                            <Clock className="w-3 h-3 text-orange-600 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>{item}</span>
+                          </li>
+                        )) || <li className="text-orange-700">分析中...</li>}
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-orange-700 mb-1">每周目标</h5>
+                      <ul className="text-orange-700 text-sm space-y-1">
+                        {analysis.result.practicalAdvice.actionPlan?.weeklyGoals?.map((item, index) => (
+                          <li key={index} className="flex items-start">
+                            <Calendar className="w-3 h-3 text-orange-600 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>{item}</span>
+                          </li>
+                        )) || <li className="text-orange-700">分析中...</li>}
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-medium text-orange-700 mb-1">每月目标</h5>
+                      <ul className="text-orange-700 text-sm space-y-1">
+                        {analysis.result.practicalAdvice.actionPlan?.monthlyTargets?.map((item, index) => (
+                          <li key={index} className="flex items-start">
+                            <Target className="w-3 h-3 text-orange-600 mt-0.5 mr-2 flex-shrink-0" />
+                            <span>{item}</span>
+                          </li>
+                        )) || <li className="text-orange-700">分析中...</li>}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Life Experiences Tab */}
+          {activeTab === 'experiences' && analysis.result.lifeExperiences && (
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">人生经历推测</h3>
+              <p className="text-sm text-gray-600 text-center mb-6">基于手相特征推测您可能的人生经历和背景</p>
+              
+              <div className="space-y-6">
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Briefcase className="w-5 h-5 text-blue-600 mr-2" />
+                    <h4 className="font-semibold text-blue-800">职业经历</h4>
+                  </div>
+                  <p className="text-blue-700 leading-relaxed">{analysis.result.lifeExperiences.careerHistory || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <BookOpen className="w-5 h-5 text-green-600 mr-2" />
+                    <h4 className="font-semibold text-green-800">教育背景</h4>
+                  </div>
+                  <p className="text-green-700 leading-relaxed">{analysis.result.lifeExperiences.educationalBackground || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Calendar className="w-5 h-5 text-purple-600 mr-2" />
+                    <h4 className="font-semibold text-purple-800">重大事件</h4>
+                  </div>
+                  <p className="text-purple-700 leading-relaxed">{analysis.result.lifeExperiences.majorLifeEvents || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Star className="w-5 h-5 text-orange-600 mr-2" />
+                    <h4 className="font-semibold text-orange-800">兴趣爱好</h4>
+                  </div>
+                  <p className="text-orange-700 leading-relaxed">{analysis.result.lifeExperiences.hobbiesAndInterests || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <MapPin className="w-5 h-5 text-teal-600 mr-2" />
+                    <h4 className="font-semibold text-teal-800">旅行经历</h4>
+                  </div>
+                  <p className="text-teal-700 leading-relaxed">{analysis.result.lifeExperiences.travelExperiences || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Heart className="w-5 h-5 text-pink-600 mr-2" />
+                    <h4 className="font-semibold text-pink-800">感情经历</h4>
+                  </div>
+                  <p className="text-pink-700 leading-relaxed">{analysis.result.lifeExperiences.relationshipHistory || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-red-50 to-red-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <Activity className="w-5 h-5 text-red-600 mr-2" />
+                    <h4 className="font-semibold text-red-800">健康挑战</h4>
+                  </div>
+                  <p className="text-red-700 leading-relaxed">{analysis.result.lifeExperiences.healthChallenges || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <TrendingUp className="w-5 h-5 text-indigo-600 mr-2" />
+                    <h4 className="font-semibold text-indigo-800">个人成长</h4>
+                  </div>
+                  <p className="text-indigo-700 leading-relaxed">{analysis.result.lifeExperiences.personalGrowth || '分析中...'}</p>
+                </div>
+
+                <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl border border-yellow-200">
+                  <div className="flex items-center mb-3">
+                    <Shield className="w-5 h-5 text-yellow-600 mr-2" />
+                    <h4 className="font-semibold text-yellow-800">推测说明</h4>
+                  </div>
+                  <p className="text-yellow-700 leading-relaxed text-sm">
+                    以上人生经历推测基于传统手相学理论和现代心理学研究，通过分析手掌纹理、线条特征、手型结构等信息进行合理推测。
+                    这些推测仅供参考和娱乐，不应作为绝对准确的人生判断依据。每个人的人生轨迹都是独特的，最终由个人选择和努力决定。
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -254,7 +829,7 @@ const Result: React.FC = () => {
               to="/camera"
               className="flex-1 flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all"
             >
-              <RotateCcw className="w-5 h-5" />
+              <Sparkles className="w-5 h-5" />
               <span>重新分析</span>
             </Link>
             <Link
