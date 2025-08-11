@@ -1,7 +1,7 @@
 // API测试工具函数
 
 /**
- * 测试OpenAI API连接
+ * 测试OpenAI API连接（直接调用）
  */
 export async function testOpenAIConnection(): Promise<{ success: boolean; message: string; responseTime?: number }> {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
@@ -57,7 +57,7 @@ export async function testOpenAIConnection(): Promise<{ success: boolean; messag
 }
 
 /**
- * 测试Groq API连接
+ * 测试Groq API连接（直接调用）
  */
 export async function testGroqConnection(): Promise<{ success: boolean; message: string; responseTime?: number }> {
   const apiKey = import.meta.env.VITE_GROQ_API_KEY;
